@@ -1,0 +1,45 @@
+{
+    "configurations": [
+        {
+            "name": "ksched",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "/usr/src/linux-headers-5.15.0-86-generic/arch/x86/include",
+                "/usr/src/linux-headers-5.15.0-86-generic/arch/x86/include/generated",
+                "/usr/src/linux-headers-5.15.0-86-generic/include",
+                "/usr/src/linux-headers-5.15.0-86-generic/arch/x86/include/uapi",
+                "/usr/src/linux-headers-5.15.0-86-generic/arch/x86/include/generated/uapi",
+                "/usr/src/linux-headers-5.15.0-86-generic/include/uapi",
+                "/usr/src/linux-headers-5.15.0-86-generic/include/generated/uapi"
+            ],
+            "defines": [
+                "__KERNEL__",
+                "MODULE"
+            ],
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "gnu11",
+            "cppStandard": "gnu++20",
+            "intelliSenseMode": "linux-gcc-x64",
+            "compilerArgs": [
+                "-nostdinc",
+                "-isystem",
+                "-include",
+                "/usr/src/linux-headers-5.15.0-86-generic/include/linux/kconfig.h",
+                "-include",
+                "/usr/src/linux-headers-5.15.0-86-generic/include/linux/compiler_types.h"
+            ]
+        },
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/**"
+            ],
+            "defines": [],
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "gnu11",
+            "cppStandard": "gnu++20",
+            "intelliSenseMode": "linux-gcc-x64"
+        }
+    ],
+    "version": 4
+}

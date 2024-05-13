@@ -1,0 +1,8 @@
+# build configuration options (set to y for "yes", n for "no")
+
+# Enable debug build mode (slower but enables several runtime checks)
+CONFIG_DEBUG=n
+# Enable additional compiler optimizations (may reduce compatibility)
+CONFIG_OPTIMIZE=n
+# Build with clang instead of gcc
+CONFIG_CLANG=n
