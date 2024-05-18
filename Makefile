@@ -5,6 +5,10 @@ include $(ROOT_PATH)/build/shared.mk
 base_src = $(wildcard base/*.c)
 base_obj = $(base_src:.c=.o)
 
+# pcm lib
+PCM_DEPS = $(ROOT_PATH)/deps/pcm/build/src/libpcm.a
+PCM_LIBS = -lm -lstdc++
+
 # apps
 apps_src = $(wildcard apps/*.cpp)
 apps_obj = $(apps_src:.cpp=.o)
@@ -22,7 +26,7 @@ counter_src = $(wildcard counter/*.c)
 counter_obj = $(counter_src:.c=.o)
 
 counterd: $(counter_obj)
-	$(LD) $(LDFLAGS) -o $@ $(counter_obj) libbase.a -lpthread -lnuma -ldl
+	$(LD) $(LDFLAGS) -o $@ $(counter_obj) libbase.a $(PCM_DEPS) $(PCM_LIBS) -lpthread -lnuma -ldl
 
 # iokerneld: $(iokernel_obj) libbase.a libnet.a base/base.ld $(PCM_DEPS)
 # 	$(LD) $(LDFLAGS) -o $@ $(iokernel_obj) libbase.a libnet.a $(DPDK_LIBS) \
@@ -46,6 +50,14 @@ endif
 	$(CC) $(CFLAGS) -c $< -o $@
 %.o: %.S
 	$(CC) $(CFLAGS) -c $< -o $@
+
+.PHONY: submodules
+submodules:
+	$(ROOT_PATH)/build/init_submodules.sh
+
+.PHONY: submodules-clean
+submodules-clean:
+	$(ROOT_PATH)/build/init_submodules.sh clean
 
 # prints sparse checker tool output
 sparse: $(src)
