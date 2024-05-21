@@ -2,8 +2,8 @@
 
 set -e
 
-DIR_PATH = "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CORES = $(nproc)
+DIR_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CORES=$(nproc)
 
 # Initialize submodules
 git submodule init
@@ -19,13 +19,13 @@ clean() {
   done
 }
 
-# echo building PCM
-# pushd $DIR_PATH/deps/pcm
-# rm -f src/pcm-caladan.cpp
-# patch -p1 -N < ../../build/pcm.patch
-# mkdir -p build
-# pushd build
-# cmake ..
-# make PCM_STATIC -j $CORES
-# popd
-# popd
+echo building PCM
+pushd $DIR_PATH/../deps/pcm
+rm -f src/pcm-caladan.cpp
+patch -p1 -N < ../../build/pcm.patch
+mkdir -p build
+pushd build
+cmake ..
+make PCM_STATIC -j $CORES
+popd
+popd

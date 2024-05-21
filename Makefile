@@ -51,13 +51,13 @@ endif
 %.o: %.S
 	$(CC) $(CFLAGS) -c $< -o $@
 
-.PHONY: submodules
-submodules:
-	$(ROOT_PATH)/build/init_submodules.sh
+.PHONY: submodule
+submodule:
+	$(ROOT_PATH)/build/init_submodule.sh
 
-.PHONY: submodules-clean
-submodules-clean:
-	$(ROOT_PATH)/build/init_submodules.sh clean
+.PHONY: submodule-clean
+submodule-clean:
+	$(ROOT_PATH)/build/init_submodule.sh clean
 
 # prints sparse checker tool output
 sparse: $(src)
