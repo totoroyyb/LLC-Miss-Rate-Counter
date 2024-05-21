@@ -56,3 +56,5 @@ extern void sched_poll(void);
 extern const struct sched_ops *sched_ops;
 
 extern void ias_sched_poll(uint64_t);
+extern void ias_bw_init(void);
+extern int pin_thread(pid_t, int);

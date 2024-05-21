@@ -15,6 +15,11 @@
 /* the current time in microseconds */
 uint64_t now_us;
 uint64_t ias_bw_sample_failures;
+float	 ias_bw_estimate;
+float	 ias_bw_estimate_multiplier;
+
+/* bandwidth threshold in cache lines per cycle for a single channel */
+// static float ias_bw_thresh;
 
 struct pmc_sample {
 	uint64_t gen;
@@ -64,6 +69,26 @@ static void ias_bw_gather_pmc(struct pmc_sample *samples)
 			continue;
 		}
 	}
+}
+
+static float ias_measure_bw_mem_ctrl(void)
+{
+	static uint64_t last_tsc = 0;
+	static uint32_t last_cas = 0;
+	uint64_t tsc;
+	uint32_t cur_cas;
+	float bw_estimate;
+
+	/* update the bandwidth estimate */
+	barrier();
+	tsc = rdtsc();
+	barrier();
+	cur_cas = pcm_caladan_get_cas_count(0);
+	bw_estimate = (float)(cur_cas - last_cas) / (float)(tsc - last_tsc);
+	last_cas = cur_cas;
+	last_tsc = tsc;
+	ias_bw_estimate = bw_estimate;
+	return bw_estimate;
 }
 
 static float cores[NCPU];
@@ -140,25 +165,56 @@ void ias_sched_poll(uint64_t now) {
 	}
 }
 
-/*
- * Pins thread tid to core. Returns 0 on success and < 0 on error. Note that
- * this function can always fail with error ESRCH, because threads can be
- * killed at any time.
- */
-int pin_thread(pid_t tid, int core)
-{
-	cpu_set_t cpuset;
+void ias_bw_init(void) {
 	int ret;
+	unsigned int nr_channels;
+	struct cpuid_info regs;
+	const char *intel_cpu_str = "GenuineIntel";
+	int namebytes[3];
 
-	CPU_ZERO(&cpuset);
-	CPU_SET(core, &cpuset);
+	cpuid(0, 0, &regs);
+	namebytes[0] = regs.ebx;
+	namebytes[1] = regs.edx;
+	namebytes[2] = regs.ecx;
 
-	ret = sched_setaffinity(tid, sizeof(cpu_set_t), &cpuset);
-	if (ret < 0) {
-		log_warn("cores: failed to set affinity for thread %d with err %d",
-			 tid, errno);
-		return -errno;
+	if (memcmp(namebytes, intel_cpu_str, strlen(intel_cpu_str))) {
+		log_warn("Detected non-Intel CPU. Disabling memory bandwidth monitoring!");
+		return 0;
 	}
+
+	cpuid(1, 0, &regs);
+	if (regs.ecx & (1UL << 31UL)) {
+		log_warn("Detected CPU virtualization. Disabling memory bandwidth monitoring!");
+		return 0;
+	}
+
+	/* ensure threads created by pcm are pinned to control core */
+	pin_thread(0, sched_ctrl_core);
+
+	ret = pcm_caladan_init(0);
+	if (ret)
+		return ret;
+
+	/* We monitor 1 channel, so multiply measurements by nr_channels to estimate real bw */
+	nr_channels = pcm_caladan_get_active_channel_count();
+	if (nr_channels == 0)
+		return -EINVAL;
+
+	log_info("Detected nr memory channels = %d", nr_channels);
+	log_info("Detected cycles per us = %d", cycles_per_us);
+	log_info("Detected cache line size = %d", CACHE_LINE_SIZE);
+
+	// /* Use default limit if none supplied */
+	// if (!cfg.ias_bw_limit)
+	// 	cfg.ias_bw_limit = IAS_BW_LIMIT;
+
+	/* Compute the multiplier to convert cache lines/cycle to bytes/us (= MB/s) */
+	ias_bw_estimate_multiplier = cycles_per_us * nr_channels * CACHE_LINE_SIZE;
+
+	log_info("bw estimate multiplier = %.2f", ias_bw_estimate_multiplier);
+
+	/* convert from MB/s to per channel cache line/cycle */
+	// ias_bw_thresh = cfg.ias_bw_limit / ias_bw_estimate_multiplier;
 
 	return 0;
 }

@@ -22,8 +22,7 @@ void main(int argc, char *argv[]) {
 	base_init();
 	ksched_init();
 	sched_init();
+	ias_bw_init();
 
 	poll_loop();
-	
-	return 0;
 }

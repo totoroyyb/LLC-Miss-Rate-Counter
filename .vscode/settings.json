@@ -1,0 +1,8 @@
+{
+    "C_Cpp.default.configurationProvider": "ms-vscode.makefile-tools",
+    "files.associations": {
+        "sched.h": "c",
+        "stddef.h": "c",
+        "pmc.h": "c"
+    }
+}
